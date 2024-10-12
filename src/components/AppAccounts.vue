@@ -6,11 +6,10 @@
           <h1>Accounts</h1>
           <hr />
           <br />
-          <!-- Allert Message -->
+          <!-- Alert Message -->
           <b-alert v-if="showMessage" variant="success" show>{{
             message
           }}</b-alert>
-          <!-- b-alert v-if="error" variant="danger" show>{{ error }}</b-alert-->
 
           <button
             type="button"
@@ -27,6 +26,7 @@
                 <th scope="col">Account Number</th>
                 <th scope="col">Account Balance</th>
                 <th scope="col">Account Currency</th>
+                <th scope="col">Account Country</th> <!-- Added country column -->
                 <th scope="col">Account Status</th>
                 <th scope="col">Actions</th>
               </tr>
@@ -37,6 +37,7 @@
                 <td>{{ account.account_number }}</td>
                 <td>{{ account.balance }}</td>
                 <td>{{ account.currency }}</td>
+                <td>{{ account.country }}</td> <!-- Display country -->
                 <td>
                   <span
                     v-if="account.status == 'Active'"
@@ -74,6 +75,8 @@
           </footer>
         </div>
       </div>
+
+      <!-- Modal for Create Account -->
       <b-modal
         ref="addAccountModal"
         id="account-modal"
@@ -93,9 +96,9 @@
               v-model="createAccountForm.name"
               placeholder="Account Name"
               required
-            >
-            </b-form-input>
+            ></b-form-input>
           </b-form-group>
+
           <b-form-group
             id="form-currency-group"
             label="Currency:"
@@ -107,15 +110,29 @@
               v-model="createAccountForm.currency"
               placeholder="$ or €"
               required
-            >
-            </b-form-input>
+            ></b-form-input>
+          </b-form-group>
+
+          <!-- Added country field in create account form -->
+          <b-form-group
+            id="form-country-group"
+            label="Country:"
+            label-for="form-country-input"
+          >
+            <b-form-input
+              id="form-country-input"
+              type="text"
+              v-model="createAccountForm.country"
+              placeholder="Country"
+              required
+            ></b-form-input>
           </b-form-group>
 
           <b-button type="submit" variant="outline-info">Submit</b-button>
         </b-form>
       </b-modal>
-      <!-- End of Modal for Create Account-->
-      <!-- Start of Modal for Edit Account-->
+
+      <!-- Modal for Edit Account -->
       <b-modal
         ref="editAccountModal"
         id="edit-account-modal"
@@ -135,13 +152,27 @@
               v-model="editAccountForm.name"
               placeholder="Account Name"
               required
-            >
-            </b-form-input>
+            ></b-form-input>
           </b-form-group>
+
+          <!-- Added country field in edit account form -->
+          <b-form-group
+            id="form-edit-country-group"
+            label="Country:"
+            label-for="form-edit-country-input"
+          >
+            <b-form-input
+              id="form-edit-country-input"
+              type="text"
+              v-model="editAccountForm.country"
+              placeholder="Country"
+              required
+            ></b-form-input>
+          </b-form-group>
+
           <b-button type="submit" variant="outline-info">Update</b-button>
         </b-form>
       </b-modal>
-      <!-- End of Modal for Edit Account-->
     </div>
   </div>
 </template>
@@ -156,20 +187,18 @@ export default {
       createAccountForm: {
         name: "",
         currency: "",
+        country: "", // Added country to create form
       },
       editAccountForm: {
         id: "",
         name: "",
+        country: "", // Added country to edit form
       },
       showMessage: false,
       message: "",
     };
   },
   methods: {
-    /***************************************************
-     * RESTful requests
-     ***************************************************/
-
     //GET function
     RESTgetAccounts() {
       const path = `${process.env.VUE_APP_ROOT_URL}/accounts`;
@@ -190,11 +219,8 @@ export default {
         .post(path, payload)
         .then((response) => {
           this.RESTgetAccounts();
-          // For message alert
-          this.message = "Account Created succesfully!";
-          // To actually show the message
+          this.message = "Account Created successfully!";
           this.showMessage = true;
-          // To hide the message after 3 seconds
           setTimeout(() => {
             this.showMessage = false;
           }, 3000);
@@ -212,11 +238,8 @@ export default {
         .put(path, payload)
         .then((response) => {
           this.RESTgetAccounts();
-          // For message alert
-          this.message = "Account Updated succesfully!";
-          // To actually show the message
+          this.message = "Account Updated successfully!";
           this.showMessage = true;
-          // To hide the message after 3 seconds
           setTimeout(() => {
             this.showMessage = false;
           }, 3000);
@@ -234,11 +257,8 @@ export default {
         .delete(path)
         .then((response) => {
           this.RESTgetAccounts();
-          // For message alert
-          this.message = "Account Deleted succesfully!";
-          // To actually show the message
+          this.message = "Account Deleted successfully!";
           this.showMessage = true;
-          // To hide the message after 3 seconds
           setTimeout(() => {
             this.showMessage = false;
           }, 3000);
@@ -249,25 +269,24 @@ export default {
         });
     },
 
-    /***************************************************
-     * FORM MANAGEMENT
-     * *************************************************/
-
     // Initialize forms empty
     initForm() {
       this.createAccountForm.name = "";
       this.createAccountForm.currency = "";
+      this.createAccountForm.country = ""; // Clear country
       this.editAccountForm.id = "";
       this.editAccountForm.name = "";
+      this.editAccountForm.country = ""; // Clear country
     },
 
     // Handle submit event for create account
     onSubmit(e) {
-      e.preventDefault(); //prevent default form submit form the browser
-      this.$refs.addAccountModal.hide(); //hide the modal when submitted
+      e.preventDefault();
+      this.$refs.addAccountModal.hide();
       const payload = {
         name: this.createAccountForm.name,
         currency: this.createAccountForm.currency,
+        country: this.createAccountForm.country, // Include country
       };
       this.RESTcreateAccount(payload);
       this.initForm();
@@ -275,10 +294,11 @@ export default {
 
     // Handle submit event for edit account
     onSubmitUpdate(e) {
-      e.preventDefault(); //prevent default form submit form the browser
-      this.$refs.editAccountModal.hide(); //hide the modal when submitted
+      e.preventDefault();
+      this.$refs.editAccountModal.hide();
       const payload = {
         name: this.editAccountForm.name,
+        country: this.editAccountForm.country, // Include country
       };
       this.RESTupdateAccount(payload, this.editAccountForm.id);
       this.initForm();
@@ -295,11 +315,10 @@ export default {
     },
   },
 
-  /***************************************************
-   * LIFECYClE HOOKS
-   ***************************************************/
+  // Lifecycle hook to fetch accounts when the component is created
   created() {
     this.RESTgetAccounts();
   },
 };
 </script>
+
